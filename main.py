@@ -24,7 +24,7 @@ from PyQt5.Qt import Qt, QLabel, QGridLayout, QPushButton
 class CameraControl(object):
     """
     Interface class to the v4l2-ctl package.
-    All possible controls in the __init__ method were obtained by v4l2-ctl --list-ctrls.
+    All possible controls in the __init__ method were obtained by running 'v4l2-ctl --list-ctrls'.
     """
     
   

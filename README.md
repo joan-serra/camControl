@@ -1,8 +1,9 @@
 GUI for the v412-ctl package on Linux.
-I use it to adjust certain parameters of our Microsoft LifeCam in our physics experiment.
 
-![alt tag](https://cloud.githubusercontent.com/assets/8195877/23632063/d296be7c-02c0-11e7-89ad-98a80be144db.png)
-![alt tag](https://cloud.githubusercontent.com/assets/8195877/23632062/d292920c-02c0-11e7-81f6-de6d6f593872.png)
+Used to adjust some basic parameters of a Microsoft LifeCam in our physics experiment.
+
+![alt tag](https://cloud.githubusercontent.com/assets/8195877/23632581/b2fd3aee-02c2-11e7-8cbe-f7b983798d92.png)
+![alt tag](https://cloud.githubusercontent.com/assets/8195877/23632582/b2fe2cf6-02c2-11e7-803e-5a45f8a06a5f.png)
 
 ### Requirements:
 - Qt5 backend
