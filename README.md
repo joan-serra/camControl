@@ -6,6 +6,7 @@ Used to adjust some basic parameters of a Microsoft LifeCam in our physics exper
 ![alt tag](https://cloud.githubusercontent.com/assets/8195877/23632582/b2fe2cf6-02c2-11e7-803e-5a45f8a06a5f.png)
 
 ### Requirements:
+- Python 3 (due to Qt5)
 - Qt5 backend
 - v4l-utils (Use your package manger of choice (e.g. apt-get install v4l-utils)
 
@@ -15,5 +16,3 @@ Used to adjust some basic parameters of a Microsoft LifeCam in our physics exper
     
 ###Usage:
     python main.py
-
-
