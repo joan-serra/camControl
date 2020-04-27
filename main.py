@@ -1,5 +1,5 @@
-#Quick solution to control the settings of the Microsoft LiveCam through the v412-ctl package available on Linux.
-#Author: Christian Dorfer (dorfer@phys.ethz.ch)
+#Quick solution to control the settings of your webcam through the v412-ctl package available on Linux.
+#Authors: Christian Dorfer (dorfer@phys.ethz.ch), Joan Serra (serrajoan@me.com)
 
 """
 Requirements:
@@ -13,13 +13,15 @@ Usage:
 """
 
 import sh
+import re
 import sys
+import logging
 from time import sleep
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QSlider
 from PyQt5.Qt import Qt, QLabel, QGridLayout, QPushButton
 
 
-
+logging.basicConfig(level=logging.DEBUG)
 
 class CameraControl(object):
     """
@@ -34,29 +36,26 @@ class CameraControl(object):
         
         #key=name : type, min, max, step, default
         self.ctrls={
-        'backlight_compensation':['int', 0,10,1,0],
-        'brightness':['int',30,255,1,133],
-        'contrast':['int',0,10,1,5],
-        'exposure_absolute':['int',5,20000,1,156],
+        'brightness':['int',-64,64,1,0],
+        'contrast':['int',0,64,1,32],
+        'backlight_compensation':['int',0,2,1,1],
+        'exposure_absolute':['int',1,5000,1,156],
         'exposure_auto':['menu',0,3,1,3],
-        'focus_absolute':['int',0,40,1,0],
-        'focus_auto':['bool',0,0,0,0],
-        'pan_absolute':['int',-201600,201600,3600,0],
-        'power_line_frequency':['menu',0,2,2,2],
-        'saturation':['int',0,200,1,83],
-        'sharpness':['int',0,50,1,25],
-        'tilt_absolute':['int',-201600,201600,3600,0],
-        'white_balance_temperature':['int',2800,10000,1,4500],
+        'power_line_frequency':['menu',0,2,1,1],
+        'saturation':['int',0,128,1,64],
+        'sharpness':['int',0,6,1,0],
+        'white_balance_temperature':['int',2800,6500,1,4600],
         'white_balance_temperature_auto':['bool', 1,1,1,1],
-        'zoom_absolute':['int', 0,10,1,0]
         }
         
     def getValue(self, name):
         try:
             ret = self.cmd("--get-ctrl", name)
-            val = [int(s) for s in ret.split() if s.isdigit()]
+            logging.debug("Got return: {}".format(ret))
+            val = [int(d) for d in re.findall(r'-?\d+', str(ret))]
+            logging.debug("Got value: {}".format(val))
             return val[0]
-        except:
+        except:        
             print('Ups, could not read value.')
             pass
         
@@ -73,26 +72,12 @@ class CameraControl(object):
         self.setValue('brightness', self.ctrls['brightness'][4])
         self.setValue('sharpness', self.ctrls['sharpness'][4])
         self.setValue('contrast', self.ctrls['contrast'][4])
-        if not self.autofocus:
-            self.setValue('focus_absolute', self.ctrls['focus_absolute'][4])
-        
-    def setAutofocus(self, on):
-        if on:
-            self.autofocus = True
-            self.setValue("focus_auto", 1)
-        else:
-            self.autofocus = False
-            self.setValue("focus_auto", 0)
-            
-        
-        
-        
-  
+
+
 class Window(QWidget):  
     def __init__(self, cc):
         super().__init__()
         
-        self.autofocus_bool = False
         self.camCtr = cc
         self.initUI()
         
@@ -152,30 +137,12 @@ class Window(QWidget):
         self.contrast_sl.valueChanged.connect(self.contrast_sl_Change)
         self.contrast_sl.setMinimumWidth(200)
         self.grid.addWidget(self.contrast_sl, 14,2,1,1, Qt.AlignRight)
-   
-        self.focabs_lbl = QLabel("Absolute Focus")
-        self.grid.addWidget(self.focabs_lbl, 15,1,1,1, Qt.AlignLeft)
-        self.focabs_sl = QSlider()
-        self.focabs_sl.setOrientation(Qt.Horizontal)   
-        self.focabs_sl.setValue(self.camCtr.getValue('focus_absolute'))
-        self.focabs_sl.setTickInterval(1)
-        self.focabs_sl.setMaximum(self.camCtr.ctrls['focus_absolute'][2])
-        self.focabs_sl.setMinimum(self.camCtr.ctrls['focus_absolute'][1])
-        self.focabs_sl.valueChanged.connect(self.focabs_sl_Change)
-        self.focabs_sl.setMinimumWidth(200)
-        self.grid.addWidget(self.focabs_sl, 15,2,1,1, Qt.AlignRight)
-        self.grid.addWidget(QLabel(""),16,1,1,1, Qt.AlignCenter)
         
         self.reset = QPushButton()
         self.reset.setText('Reset')
         self.reset.clicked.connect(self.reset_Slot)
         self.grid.addWidget(self.reset, 17,1,1,1, Qt.AlignCenter)
         
-        self.autofocus = QPushButton()
-        self.autofocus.setText('Autofocus: OFF')
-        self.autofocus.setStyleSheet("background-color: red")
-        self.autofocus.clicked.connect(self.autofocus_Slot)
-        self.grid.addWidget(self.autofocus, 17,2,1,1, Qt.AlignCenter)  
         ### end adding control elements      
         
         self.mainLayout = QHBoxLayout()
@@ -195,9 +162,6 @@ class Window(QWidget):
         
     def contrast_sl_Change(self):
         self.camCtr.setValue('contrast', self.contrast_sl.value())
-        
-    def focabs_sl_Change(self):
-        self.camCtr.setValue('focus_absolute', self.focabs_sl.value())
 
        
     def reset_Slot(self):
@@ -205,23 +169,7 @@ class Window(QWidget):
         self.backlight_comp_sl.setValue(self.camCtr.ctrls['backlight_compensation'][4])
         self.brightness_sl.setValue(self.camCtr.ctrls['brightness'][4])
         self.sharpness_sl.setValue(self.camCtr.ctrls['sharpness'][4])
-        self.contrast_sl.setValue(self.camCtr.ctrls['contrast'][4])
-        if not camCtr.autofocus:
-            self.focabs_sl.setValue(self.camCtr.ctrls['focus_absolute'][4])
-    
-    def autofocus_Slot(self):
-        if not self.camCtr.autofocus:
-            self.camCtr.setAutofocus(True)
-            self.focabs_sl.setDisabled(True)
-            self.autofocus.setText('Autofocus: ON')
-            self.autofocus.setStyleSheet("background-color: green")
-        else:
-            self.camCtr.setAutofocus(False)
-            self.focabs_sl.setDisabled(False)
-            self.autofocus.setText('Autofocus: OFF')
-            self.autofocus.setStyleSheet("background-color: red")
-            self.focabs_sl.setValue(self.camCtr.getValue('focus_absolute'))
-            
+        self.contrast_sl.setValue(self.camCtr.ctrls['contrast'][4])           
             
             
             
