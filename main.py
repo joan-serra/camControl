@@ -32,7 +32,6 @@ class CameraControl(object):
   
     def __init__(self):
         self.cmd = sh.Command("/usr/bin/v4l2-ctl")
-        self.autofocus = False
         
         #key=name : type, min, max, step, default
         self.ctrls={
